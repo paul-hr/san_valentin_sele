@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quieres ser mi San Valentín?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #ffe6e6, #fff5e6);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 1;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            position: relative;
+        }
+
+        h1 {
+            color: #ff4d6d;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-yes {
+            background: #ff4d6d;
+            color: white;
+        }
+
+        .btn-no {
+            background: #gray;
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Animaciones para girasoles y mariposas */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .sunflower {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: url('/api/placeholder/60/60') no-repeat center/contain;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        .butterfly {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: url('/api/placeholder/40/40') no-repeat center/contain;
+            animation: float 4s infinite ease-in-out;
+        }
+
+        /* Posiciones iniciales de elementos decorativos */
+        .decoration:nth-child(1) { top: 10%; left: 10%; }
+        .decoration:nth-child(2) { top: 20%; right: 15%; }
+        .decoration:nth-child(3) { bottom: 15%; left: 20%; }
+        .decoration:nth-child(4) { bottom: 25%; right: 10%; }
+    </style>
+</head>
+<body>
+    <!-- Elementos decorativos -->
+    <div class="sunflower decoration"></div>
+    <div class="butterfly decoration"></div>
+    <div class="sunflower decoration"></div>
+    <div class="butterfly decoration"></div>
+
+    <div class="container">
+        <h1>¿Quieres ser mi San Valentín?</h1>
+        <p class="message">Me harías la persona más feliz del mundo si dices que sí...</p>
+        <div class="buttons">
+            <button class="btn btn-yes" onclick="acceptProposal()">¡Sí, quiero!</button>
+            <button class="btn btn-no" onmouseover="moveButton(this)">No</button>
+        </div>
+    </div>
+
+    <script>
+        function moveButton(button) {
+            const x = Math.random() * (window.innerWidth - button.offsetWidth);
+            const y = Math.random() * (window.innerHeight - button.offsetHeight);
+            
+            button.style.position = 'absolute';
+            button.style.left = `${x}px`;
+            button.style.top = `${y}px`;
+        }
+
+        function acceptProposal() {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <h1>¡Gracias por decir que sí! ❤️</h1>
+                <p>Has hecho que este sea el mejor San Valentín de todos.</p>
+            `;
+            
+            // Añadir más animaciones de celebración
+            createHearts();
+        }
+
+        function createHearts() {
+            for(let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.style.position = 'absolute';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animation = `float ${Math.random() * 2 + 2}s infinite ease-in-out`;
+                document.body.appendChild(heart);
+            }
+        }
+    </script>
+</body>
+</html>
