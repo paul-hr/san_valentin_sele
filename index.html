@@ -130,7 +130,43 @@
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-        
+        /* Estilos para el modal de imagen */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-modal.active {
+            display: flex;
+        }
+        .modal-image {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            z-index: 2001;
+        }
+
+        .close-modal:hover {
+            color: #ff4d6d;
+        }
          /* Photo gallery styles - Versión Horizontal */
          .photo-gallery {
             display: flex;
@@ -142,6 +178,11 @@
             overflow-x: hidden;
             position: relative;
             align-items: center;
+            cursor: grab; /* Indica que se puede arrastrar */
+        }
+
+        .photo-gallery:active {
+            cursor: grabbing; /* Cambia el cursor cuando se está arrastrando */
         }
 
         .photo-gallery::-webkit-scrollbar {
@@ -151,9 +192,13 @@
             display: flex;
             gap: 20px;
             animation: slideLeft 15s linear infinite;
-            &:hover {
-                animation-play-state: paused;
-            }
+            user-select: none; /* Previene la selección de texto durante el arrastre */
+        }
+
+
+        .gallery-container.dragging {
+            animation-play-state: paused;
+            transition: none; /* Elimina la transición durante el arrastre */
         }
         .photo-container {
             flex: 0 0 280px;
@@ -331,9 +376,9 @@
         function acceptProposal() {
             const container = document.querySelector('.container');
             container.innerHTML = `
-                <h1>¡Gracias por decir que sí! ❤️</h1>
+                <h1 style="color: #ff4d8d;">¡Gracias por decir que sí! ❤️</h1>
                 <p>Has hecho que este sea el mejor San Valentín de todos.</p>
-                <p>#MÑHLYR ❤️.</p>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #666;">#MNHLYR ❤️</p>
                 <div class="photo-gallery" id="photoGallery"></div>
             `;
             
@@ -354,35 +399,141 @@
     const galleryContainer = document.createElement('div');
     galleryContainer.className = 'gallery-container';
     
-    // Cargamos las fotos originales
-    for (let i = 1; i <= 4; i++) {
-        const photoContainer = document.createElement('div');
-        photoContainer.className = 'photo-container';
-        
-        const img = document.createElement('img');
-        img.src = `assets/photos/photo${i}.jpg`;
-        img.alt = 'Momento especial';
-        img.loading = 'lazy';
-        
-        photoContainer.appendChild(img);
-        galleryContainer.appendChild(photoContainer);
+    // Crear el modal
+    const imageModal = document.createElement('div');
+    imageModal.className = 'image-modal';
+    imageModal.innerHTML = `
+        <span class="close-modal">&times;</span>
+        <img class="modal-image" src="" alt="Foto en grande">
+    `;
+    document.body.appendChild(imageModal);
+
+    const modalImage = imageModal.querySelector('.modal-image');
+    const closeButton = imageModal.querySelector('.close-modal');
+
+    // Función para abrir el modal
+    function openModal(imgSrc) {
+        modalImage.src = imgSrc;
+        imageModal.classList.add('active');
+        galleryContainer.style.animationPlayState = 'paused';
     }
+
+    // Cerrar modal
+    closeButton.onclick = () => {
+        imageModal.classList.remove('active');
+        galleryContainer.style.animationPlayState = 'running';
+    }
+
+    // Cerrar modal al hacer clic fuera de la imagen
+    imageModal.onclick = (e) => {
+        if (e.target === imageModal) {
+            imageModal.classList.remove('active');
+            galleryContainer.style.animationPlayState = 'running';
+        }
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && imageModal.classList.contains('active')) {
+            imageModal.classList.remove('active');
+            galleryContainer.style.animationPlayState = 'running';
+        }
+    });
     
-    // Duplicamos las fotos para el desplazamiento continuo
-    for (let i = 1; i <= 4; i++) {
-        const photoContainer = document.createElement('div');
-        photoContainer.className = 'photo-container';
-        
-        const img = document.createElement('img');
-        img.src = `assets/photos/photo${i}.jpg`;
-        img.alt = 'Momento especial';
-        img.loading = 'lazy';
-        
-        photoContainer.appendChild(img);
-        galleryContainer.appendChild(photoContainer);
+    // Cargar fotos (original y duplicado)
+    for (let j = 0; j < 2; j++) {
+        for (let i = 1; i <= 4; i++) {
+            const photoContainer = document.createElement('div');
+            photoContainer.className = 'photo-container';
+            
+            const img = document.createElement('img');
+            img.src = `assets/photos/photo${i}.jpg`;
+            img.alt = 'Momento especial';
+            img.loading = 'lazy';
+            
+            // Agregar click event para abrir el modal
+            img.onclick = (e) => {
+                e.stopPropagation(); // Prevenir que el evento afecte el arrastre
+                if (!isDragging) { // Solo abrir si no estamos arrastrando
+                    openModal(img.src);
+                }
+            };
+            
+            photoContainer.appendChild(img);
+            galleryContainer.appendChild(photoContainer);
+        }
     }
     
     gallery.appendChild(galleryContainer);
+
+    // Variables para el arrastre
+    let isDragging = false;
+    let startPos = 0;
+    let scrollLeft = 0;
+
+    // Detener animación al pasar el mouse
+    gallery.addEventListener('mouseenter', () => {
+        galleryContainer.style.animationPlayState = 'paused';
+    });
+
+    // Reanudar animación al quitar el mouse
+    gallery.addEventListener('mouseleave', () => {
+        if (!isDragging) {
+            galleryContainer.style.animationPlayState = 'running';
+        }
+    });
+
+    // Iniciar arrastre
+    gallery.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        gallery.classList.add('dragging');
+        startPos = e.pageX - gallery.offsetLeft;
+        scrollLeft = gallery.scrollLeft;
+    });
+
+    // Durante el arrastre
+    gallery.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - gallery.offsetLeft;
+        const walk = (x - startPos) * 2;
+        gallery.scrollLeft = scrollLeft - walk;
+    });
+
+    // Terminar arrastre
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        gallery.classList.remove('dragging');
+    });
+
+    // Prevenir arrastre de imágenes
+    gallery.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
+
+    // Soporte para dispositivos táctiles
+    gallery.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        gallery.classList.add('dragging');
+        startPos = e.touches[0].pageX - gallery.offsetLeft;
+        scrollLeft = gallery.scrollLeft;
+    });
+
+    gallery.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.touches[0].pageX - gallery.offsetLeft;
+        const walk = (x - startPos) * 2;
+        gallery.scrollLeft = scrollLeft - walk;
+    });
+
+    gallery.addEventListener('touchend', () => {
+        isDragging = false;
+        gallery.classList.remove('dragging');
+        setTimeout(() => {
+            galleryContainer.style.animationPlayState = 'running';
+        }, 100);
+    });
 }
 
         function createHearts() {
