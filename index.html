@@ -130,36 +130,40 @@
             transform: scale(1.05);
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-
+        
          /* Photo gallery styles - Versión Horizontal */
          .photo-gallery {
             display: flex;
             flex-direction: row;
             gap: 20px;
-            padding: 20px 20px 40px 20px; /* Aumentamos el padding inferior */
+            padding: 20px;
             width: 100%;
             margin: 0 auto;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            align-items: center; /* Centramos verticalmente */
+            overflow-x: hidden;
+            position: relative;
+            align-items: center;
         }
 
         .photo-gallery::-webkit-scrollbar {
             display: none; /* Chrome, Safari and Opera */
         }
-
+        .gallery-container {
+            display: flex;
+            gap: 20px;
+            animation: slideLeft 15s linear infinite;
+            &:hover {
+                animation-play-state: paused;
+            }
+        }
         .photo-container {
-            flex: 0 0 280px; /* Reducimos ligeramente el tamaño */
-            height: 280px; /* Mantenemos el aspecto cuadrado */
+            flex: 0 0 280px;
+            height: 280px;
+            min-width: 280px; /* Añadido para mantener el tamaño consistente */
             position: relative;
             overflow: hidden;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
-            margin-right: 5px; /* Añadimos un pequeño margen */
         }
 
         .photo-container:hover {
@@ -217,6 +221,14 @@
                 opacity: 0;
             }
         }
+        @keyframes slideLeft {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%); /* Solo se moverá el 50% para mostrar el segundo conjunto */
+            }
+        }
 
         .sunflower {
             position: absolute;
@@ -237,6 +249,7 @@
             pointer-events: none;
             animation: floatUp 4s ease-in-out infinite;
         }
+        
     </style>
 </head>
 <body>
@@ -245,6 +258,7 @@
         <div class="modal-content">
             <h2>🎵 Love You With All My Heart #MÑH </h2>
             <p>Para hacer este momento más especial, ¿te gustaría escuchar una canción de fondo?</p>
+            
             <div class="modal-buttons">
                 <button class="modal-btn modal-btn-accept" onclick="acceptMusic()">Yep </button>
                 <button class="modal-btn modal-btn-decline" onclick="declineMusic()">No Yep</button>
@@ -336,22 +350,40 @@
         }
 
         function loadPhotos() {
-            const gallery = document.getElementById('photoGallery');
-            const photoCount = 4; // Número de fotos que tienes en la carpeta
-
-            for (let i = 1; i <= photoCount; i++) {
-                const photoContainer = document.createElement('div');
-                photoContainer.className = 'photo-container';
-                
-                const img = document.createElement('img');
-                img.src = `assets/photos/photo${i}.jpg`;
-                img.alt = 'Momento especial';
-                img.loading = 'lazy'; // Mejora el rendimiento
-                
-                photoContainer.appendChild(img);
-                gallery.appendChild(photoContainer);
-            }
-        }
+    const gallery = document.getElementById('photoGallery');
+    const galleryContainer = document.createElement('div');
+    galleryContainer.className = 'gallery-container';
+    
+    // Cargamos las fotos originales
+    for (let i = 1; i <= 4; i++) {
+        const photoContainer = document.createElement('div');
+        photoContainer.className = 'photo-container';
+        
+        const img = document.createElement('img');
+        img.src = `assets/photos/photo${i}.jpg`;
+        img.alt = 'Momento especial';
+        img.loading = 'lazy';
+        
+        photoContainer.appendChild(img);
+        galleryContainer.appendChild(photoContainer);
+    }
+    
+    // Duplicamos las fotos para el desplazamiento continuo
+    for (let i = 1; i <= 4; i++) {
+        const photoContainer = document.createElement('div');
+        photoContainer.className = 'photo-container';
+        
+        const img = document.createElement('img');
+        img.src = `assets/photos/photo${i}.jpg`;
+        img.alt = 'Momento especial';
+        img.loading = 'lazy';
+        
+        photoContainer.appendChild(img);
+        galleryContainer.appendChild(photoContainer);
+    }
+    
+    gallery.appendChild(galleryContainer);
+}
 
         function createHearts() {
             for(let i = 0; i < 20; i++) {
